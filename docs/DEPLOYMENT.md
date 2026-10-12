@@ -32,3 +32,5 @@ Netlify → Project configuration → Environment variables 已配置：
 ## 已验证的发布基础
 
 2026-10-12 原有 Git 自动部署及发布前测试已实际验证。此次增加 Supabase 构建步骤；本次具体提交和发布结果在任务交付说明中列出。网站继续公开访问，账号登录用于读取个人学习数据。
+
+Supabase 功能提交 `73f8a3d32df44919ede8beb4989c94c70ae36f16` 已于 2026-10-12 发布，[部署记录](https://app.netlify.com/projects/enchanting-faun-41350f/deploys/6acc9989a45c80b865f6341c) 为 ready。实际云端日志包含 `npm test && npm run build`、`Passed 9 test files.` 和 `Cloud enabled.`。正式网址已登录测试账号，读取到在 localhost 创建的文章和生词；正式网址删除测试词条后，独立客户端确认云端删除生效。
