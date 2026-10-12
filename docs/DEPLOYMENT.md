@@ -10,14 +10,16 @@
 
 ## 自动发布与测试
 
-现有 Netlify 项目使用本仓库 `7eileen/read-keep` 的 `main` 分支作为生产来源。根目录 `netlify.toml` 定义发布设置：
+当前状态：测试配置已入库，现有 Netlify 项目仍需完成 GitHub 授权与仓库连接。连接页：https://app.netlify.com/projects/enchanting-faun-41350f/link 。选择已有仓库 `7eileen/read-keep`，以 `main` 分支作为生产来源。
+
+根目录 `netlify.toml` 定义发布设置：
 
 - 基础目录：仓库根目录。
 - Node.js：22。
 - 构建命令：`npm test`，依次运行现有 7 组逻辑测试。
 - 发布目录：`dist`。
 
-后续推送或合并到 `main` 后，Netlify 自动获取该提交并运行测试。测试通过才发布 `dist`；测试退出码非零时部署失败，当前线上版本继续提供服务。Netlify 的部署日志可查看具体测试输出和提交号。`netlify.toml` 中的设置优先于后台同名设置。
+完成连接后，推送或合并到 `main` 会触发 Netlify 获取该提交并运行测试。测试通过才发布 `dist`；测试退出码非零时部署失败，当前线上版本继续提供服务。首次连接后仍需核对云端测试日志及生产部署的提交号。`netlify.toml` 中的设置优先于后台同名设置。
 
 建议修改后先在本地运行 `npm test`，再提交到 GitHub。若测试失败，修复并推送新的提交即可重新触发部署。现有测试主要验证业务逻辑，不替代真实浏览器、PDF 文件和外部翻译服务验证。
 
