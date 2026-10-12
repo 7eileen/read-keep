@@ -1,0 +1,12 @@
+{
+  "name": "read-keep",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Read & Keep: a contextual IELTS reading vocabulary journal",
+  "scripts": {
+    "test": "node tests/run.cjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

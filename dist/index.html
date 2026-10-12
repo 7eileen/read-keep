@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f8f2">
+  <meta name="description" content="拾词，把雅思阅读中遇见的生词，留在熟悉的语境里。">
+  <title>拾词 · Read & Keep</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="reader.css?v=9">
+  <link rel="stylesheet" href="bulk.css?v=9">
+  <link rel="stylesheet" href="lexicon.css?v=9">
+  <script defer src="core.js?v=9"></script>
+  <script defer src="reader-core.js?v=9"></script>
+  <script defer src="lexicon.js?v=9"></script>
+  <script defer src="translate.js?v=9"></script>
+  <script defer src="lexicon-ui.js?v=9"></script>
+  <script defer src="reader.js?v=9"></script>
+  <script defer src="bulk.js?v=9"></script>
+  <script defer src="app.js?v=9"></script>
+</head>
+<body>
+  <a class="skip" href="#main">跳到主要内容</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#today" class="brand" aria-label="拾词首页"><span class="brand-icon" id="brand-icon"></span><span>拾词 <small>Read & Keep</small></span></a>
+      <nav class="desktop-nav" aria-label="主导航" id="desktop-nav"></nav>
+      <div class="header-actions"><button class="demo-badge" data-action="about">DEMO <span>· 本机保存</span></button><button class="btn primary desktop-add" data-action="add"><span data-icon="plus"></span>记录生词</button></div>
+    </div>
+  </header>
+  <main id="main" tabindex="-1"></main>
+  <nav class="mobile-nav" aria-label="手机导航" id="mobile-nav"></nav>
+  <button class="mobile-add" aria-label="记录生词" data-action="add"><span data-icon="plus"></span></button>
+  <dialog id="modal" aria-labelledby="dialog-title"><div id="modal-content"></div></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

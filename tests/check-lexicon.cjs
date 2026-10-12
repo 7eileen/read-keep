@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const L=require('../dist/lexicon.js');
+const fixture=w=>JSON.parse(fs.readFileSync(path.join(__dirname,'dictionary-'+w+'.json'),'utf8').replace(/^\uFEFF/,''));
+const coverage=L.normalize(fixture('coverage'),'coverage','In the face of the frequent and often vivid media coverage, children form ideas about rainforests.');
+assert.equal(coverage.parts[0],'noun');assert.match(coverage.definition,/journalism/);assert.ok(coverage.forms.some(f=>f.word==='coverages'&&f.label==='复数'));
+const grow=L.normalize(fixture('grow'),'grow','Children grow quickly.');
+for(const word of ['grew','grown','growing','grows'])assert.ok(grow.forms.some(f=>f.word===word));
+assert.ok(!grow.forms.some(f=>f.word==='growed'||f.word==='growe'));
+const beautiful=L.normalize(fixture('beautiful'),'beautiful');assert.ok(beautiful.forms.some(f=>f.label==='比较级'&&f.word==='more beautiful'));
+assert.equal(L.normalize(fixture('went'),'went').lemma,'go');
+assert.equal(L.normalize(fixture('in-response-to'),'in response to').status,'missing');
+const e={word:'grow',sentence:'Children grow quickly.',translationVersion:3,meaningEdited:true};
+assert.ok(L.accepts(e,{...e}));assert.ok(!L.accepts(null,e));assert.ok(!L.accepts({...e,translationVersion:4},e));assert.ok(!L.accepts({...e,word:'growl'},e));
+console.log('Dictionary: contextual sense, POS, regular/irregular forms, comparisons, lemma, missing entries and stale responses passed.');

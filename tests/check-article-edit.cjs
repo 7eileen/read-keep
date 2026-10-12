@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict');
+const R=require('../dist/reader-core.js');
+assert.equal(typeof R.editArticle,'function','Editing must retain line breaks and protect saved vocabulary context');
+const text='Trees retain rainwater. Gardens support biodiversity.';
+const state={articles:[{id:'a',title:'Gardens',paragraphs:[{text,page:1}]}],entries:[{id:'one',articleId:'a',source:'Gardens',word:'retain',sentence:'Trees retain rainwater.',rangeStart:6,rangeEnd:12,paragraphIndex:0,meaning:'保留',note:'rainwater',due:'2026-10-13'},{id:'two',articleId:'a',source:'Gardens',word:'biodiversity',sentence:'Gardens support biodiversity.',rangeStart:39,rangeEnd:51,paragraphIndex:0,meaning:'生物多样性'}],activeArticle:'a'};
+const original=JSON.stringify(state);
+const changed=R.editArticle(state,'a','Urban gardens','An introduction.\n\nTrees\nretain rainwater.\n\nGardens support biodiversity.');
+assert.deepEqual(changed.articles[0].paragraphs.map(p=>p.text),['An introduction.','Trees\nretain rainwater.','Gardens support biodiversity.']);
+assert.equal(changed.entries[0].paragraphIndex,1);assert.equal(changed.entries[0].rangeStart,6);assert.equal(changed.entries[0].rangeEnd,12);assert.equal(changed.entries[0].locationStale,false);
+assert.equal(changed.entries[1].paragraphIndex,2);assert.equal(changed.entries[1].rangeStart,16);assert.equal(changed.entries[1].rangeEnd,28);
+assert.equal(changed.entries[0].source,'Urban gardens');assert.equal(changed.entries[0].meaning,'保留');assert.equal(changed.entries[0].sentence,'Trees retain rainwater.');assert.equal(changed.entries[0].due,'2026-10-13');
+const removed=R.editArticle(state,'a','Gardens','Trees grow well.');
+assert.equal(removed.entries.length,2);assert(removed.entries.every(e=>e.locationStale));assert.equal(removed.entries[0].meaning,'保留');
+const ambiguous=R.editArticle(state,'a','Gardens','Trees retain rainwater.\n\nTrees retain rainwater.');
+assert(ambiguous.entries[0].locationStale,'Ambiguous repeated sentences must not silently point to the wrong location');
+assert.throws(()=>R.editArticle(state,'a','Gardens','  '));assert.throws(()=>R.editArticle(state,'a','Gardens','x'.repeat(60001)));
+assert.equal(JSON.stringify(state),original);
+console.log('PASS: text/line breaks, paragraph reordering, offsets, ambiguous or removed anchors, retained original context and review data.');

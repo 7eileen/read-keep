@@ -1,0 +1,12 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const C=require('../dist/core.js'),RC=require('../dist/reader-core.js'),L=require('../dist/lexicon.js');
+let saveOK=true,finish;
+const ctx=vm.createContext({console,AbortController,DOMException,Date,Math,Map,Set,ArticleCore:RC,WordLexicon:L,C,state:{entries:[],articles:[{id:'a',title:'Test',paragraphs:[{text:'Birds adapt. Cities adapt.'}]}],activeArticle:'a',settings:{autoTranslate:false}},session:null,today:()=> '2026-10-10',persist:()=>saveOK,toast:()=>{},document:{addEventListener(){},querySelectorAll(){return [];}},$:()=>null,WordTranslation:{translate:()=>new Promise(resolve=>finish=resolve)}});
+for(const file of ['reader.js','bulk.js'])vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../dist',file),'utf8'),ctx);
+vm.runInContext('readerRefresh=()=>{};',ctx);
+vm.runInContext('collectRange(0,6,11);collectRange(0,20,25);',ctx);
+assert.equal(ctx.state.entries.length,2);
+vm.runInContext('collectRange(0,6,11);',ctx);assert.equal(ctx.state.entries.length,1);assert.equal(ctx.state.entries[0].rangeStart,20);
+saveOK=false;vm.runInContext('collectRange(0,20,25);',ctx);assert.equal(ctx.state.entries.length,1,'Failed saves preserve selected entry');
+vm.runInContext('collectRange(0,6,11);',ctx);assert.equal(ctx.state.entries.length,1,'Failed saves do not leave unsaved selections');saveOK=true;
+(async()=>{const id=ctx.state.entries[0].id;const pending=vm.runInContext(`translateEntry(${JSON.stringify(id)})`,ctx);vm.runInContext(`uncollectEntry(${JSON.stringify(id)})`,ctx);finish({meaning:'适应',sentenceTranslation:'城市适应。',lexicon:{status:'missing'}});await pending;assert.equal(ctx.state.entries.length,0,'Late translations cannot restore deselected entries');console.log('PASS: same-position toggle, independent encounters, save failure rollback, cancellation during translation.');})();

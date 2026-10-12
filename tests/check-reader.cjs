@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict');
+const R=require('../dist/reader-core.js');
+const text='Dr. Smith chose a resilient design. A resilient city can adapt.';
+const tokens=R.tokenize(text);assert.equal(tokens.map(t=>t.text).join(''),text);
+const second=text.lastIndexOf('resilient');assert.equal(R.selection(text,second,second+9).sentence,'A resilient city can adapt.');
+assert.equal(R.selection(text,0,2).sentence,'Dr. Smith chose a resilient design.');
+assert.equal(R.selection('in response to change',0,14).word,'in response to');
+assert.equal(R.selection('in response to change',14,0).word,'in response to');
+assert.throws(()=>R.selection('x '.repeat(15),0,30));
+assert.notEqual(R.locationKey('a',0,2,8),R.locationKey('a',1,2,8));
+assert.deepEqual(R.paragraphs('First line\ncontinues.\r\n\r\nSecond paragraph.'),['First line continues.','Second paragraph.']);
+const base={word:'adapt',sentence:'Birds adapt.',translationVersion:1};
+assert(R.acceptsTranslation(base,{...base}));
+assert(!R.acceptsTranslation({...base,meaningEdited:true},base));
+assert(!R.acceptsTranslation({...base,translationVersion:2},base));
+assert(!R.acceptsTranslation(null,base));
+const long=R.querySlice('é'.repeat(400),'',480);assert(new TextEncoder().encode(long.text).length<=480);assert(long.shortened);
+console.log('PASS: token offsets, repeated-word sentence context, phrase ranges, location identity, translation race protection, byte limits.');

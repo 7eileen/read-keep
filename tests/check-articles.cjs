@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict');
+const R=require('../dist/reader-core.js');
+assert.equal(typeof R.renameArticle,'function','Article renaming must update only records linked by article ID');
+assert.equal(typeof R.removeArticle,'function','Article deletion must preserve collected vocabulary');
+const state={articles:[{id:'a',title:'Same title',paragraphs:[{text:'Trees retain rainwater.'}]},{id:'b',title:'Same title',paragraphs:[]}],entries:[{id:'one',articleId:'a',source:'Same title',word:'retain',sentence:'Trees retain rainwater.',note:'Keep me',due:'2026-10-12'},{id:'two',articleId:'b',source:'Same title',word:'adapt'},{id:'three',source:'Same title',word:'sustain'}],activeArticle:'a',settings:{batch:5},lastEntry:'one'};
+const original=JSON.stringify(state);
+const renamed=R.renameArticle(state,'a','  Urban gardens  ');
+assert.equal(renamed.articles[0].title,'Urban gardens');assert.equal(renamed.articles[1].title,'Same title');
+assert.deepEqual(renamed.entries.map(e=>e.source),['Urban gardens','Same title','Same title']);
+assert.equal(renamed.entries[0].sentence,'Trees retain rainwater.');assert.equal(renamed.entries[0].note,'Keep me');
+assert.throws(()=>R.renameArticle(state,'a','   '));assert.throws(()=>R.renameArticle(state,'a','x'.repeat(151)));assert.throws(()=>R.renameArticle(state,'missing','Title'));
+const deleted=R.removeArticle(renamed,'a');
+assert.deepEqual(deleted.articles.map(a=>a.id),['b']);assert.equal(deleted.activeArticle,null);
+assert.deepEqual(deleted.entries,renamed.entries);assert.equal(deleted.lastEntry,'one');
+assert.equal(R.removeArticle(state,'b').activeArticle,'a');
+assert.equal(JSON.stringify(state),original,'Source state is retained for rollback if local saving fails');
+console.log('PASS: rename by article ID, name validation, linked source update, preserve vocabulary and review data, active article cleanup, immutable state.');

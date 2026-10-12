@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict');
+const C=require('../dist/core.js');
+assert.equal(typeof C.removeEntries,'function','Batch deletion must remove explicit record IDs and repair the review session');
+const entries=[{id:'a',word:'adapt',sentence:'Birds adapt.'},{id:'b',word:'adapt',sentence:'Cities adapt.'},{id:'c',word:'retain'},{id:'d',word:'sustain'}];
+const session={ids:['a','b','c','d'],index:2,history:[{...entries[0]},{...entries[1]}],free:true};
+const before=JSON.stringify({entries,session});
+const result=C.removeEntries(entries,['a','c','c','missing'],session);
+assert.deepEqual(result.entries.map(e=>e.id),['b','d'],'Do not remove unselected encounters of the same word');
+assert.deepEqual(result.removed.map(e=>e.id),['a','c']);
+assert.deepEqual(result.session,{ids:['b','d'],index:1,history:[entries[1]],free:true},'Keep the next review position and remove deleted history');
+assert.equal(JSON.stringify({entries,session}),before,'Inputs must stay intact for failed-save rollback');
+assert.deepEqual(C.removeEntries(entries,[],null).entries,entries);
+assert.equal(C.removeEntries(entries,['a'],null).session,null);
+const all=C.removeEntries(entries,entries.map(e=>e.id),session);
+assert.equal(all.entries.length,0);assert.deepEqual(all.session.ids,[]);assert.equal(all.session.index,0);assert.deepEqual(all.session.history,[]);
+console.log('PASS: explicit IDs, duplicate words, empty/all deletion, review position, history cleanup, immutable inputs.');
