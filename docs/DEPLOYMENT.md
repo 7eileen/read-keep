@@ -10,7 +10,9 @@
 
 ## 自动发布与测试
 
-当前状态：测试配置已入库，现有 Netlify 项目仍需完成 GitHub 授权与仓库连接。连接页：https://app.netlify.com/projects/enchanting-faun-41350f/link 。选择已有仓库 `7eileen/read-keep`，以 `main` 分支作为生产来源。
+2026-10-12 已将现有 Netlify 项目 `enchanting-faun-41350f` 连接到 GitHub 仓库 `7eileen/read-keep`，以 `main` 分支作为生产来源，沿用当前正式网址。
+
+Netlify GitHub App 的安装授权设为 **Only select repositories**，已选列表仅含 `7eileen/read-keep`。可在 [GitHub 安装设置](https://github.com/settings/installations/170483992) 核对；公开仓库仍可被公开读取。
 
 根目录 `netlify.toml` 定义发布设置：
 
@@ -19,7 +21,7 @@
 - 构建命令：`npm test`，依次运行现有 7 组逻辑测试。
 - 发布目录：`dist`。
 
-完成连接后，推送或合并到 `main` 会触发 Netlify 获取该提交并运行测试。测试通过才发布 `dist`；测试退出码非零时部署失败，当前线上版本继续提供服务。首次连接后仍需核对云端测试日志及生产部署的提交号。`netlify.toml` 中的设置优先于后台同名设置。
+推送或合并到 `main` 会触发 Netlify 获取该提交并运行测试。测试通过才发布 `dist`；测试退出码非零时部署失败，当前线上版本继续提供服务。可在 [部署记录](https://app.netlify.com/projects/enchanting-faun-41350f/deploys) 核对提交号及云端测试日志。`netlify.toml` 中的设置优先于后台同名设置。
 
 建议修改后先在本地运行 `npm test`，再提交到 GitHub。若测试失败，修复并推送新的提交即可重新触发部署。现有测试主要验证业务逻辑，不替代真实浏览器、PDF 文件和外部翻译服务验证。
 
@@ -28,6 +30,8 @@
 新项目应检查访问权限为 Public，访客无需站点密码或 Netlify 团队登录。手机布局使用底部导航；当前项目已关闭会遮挡导航的可选 Powered by Netlify 角标。
 
 ## 当前版本验证
+
+2026-10-12 首次 Git 部署已成功发布提交 `5c992367d332af9d110ee4e1d536b53366a7ff61`。Netlify 云端日志确认执行 `npm test`，结果为 `Passed 7 test files.`；[该次部署记录](https://app.netlify.com/projects/enchanting-faun-41350f/deploys/6acc726bd67e571ede53d394) 状态为 `ready`，分支为 `main`。
 
 2026-10-12 上线后已实际验证首页匿名请求返回 HTTP 200、PDF 导入、点词收录与取消、词性词形和译文展示、重新加载后的本地保存，以及手机尺寸下的阅读页、生词本和回顾入口。
 
