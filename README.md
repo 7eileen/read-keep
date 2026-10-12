@@ -4,13 +4,13 @@
 
 ## 公开站点
 
-2026-10-12 已发布至 [Netlify 正式站点](https://enchanting-faun-41350f.netlify.app/)，访客不需要登录。
+[Netlify 正式站点](https://enchanting-faun-41350f.netlify.app/) · [GitHub 仓库](https://github.com/7eileen/read-keep) · [部署说明](docs/DEPLOYMENT.md) · [Supabase 配置与验证](docs/SUPABASE-SETUP.md)。
 
-[GitHub 仓库](https://github.com/7eileen/read-keep) · [部署说明](docs/DEPLOYMENT.md)。此项目是原生 HTML、CSS 和 JavaScript 静态网站，无需编译，也不需要配置 API 密钥。
+原生 HTML、CSS、JavaScript 界面，Supabase 提供邮箱账号与按用户隔离的云端数据。访客仍可直接体验；登录后保存文章、生词、译文、笔记、收藏和回顾进度。同一账号在另一设备登录即可读取已同步记录。
 
-现有 Netlify 站点已连接 GitHub 仓库 `7eileen/read-keep`，生产分支为 `main`。更新流程为：推送到 `main` → Netlify 运行 `npm test` → 测试通过后发布 `dist`。发布前测试配置保存在根目录的 `netlify.toml`，测试失败时保留当前线上版本。本地关联目录 `.netlify/` 已忽略。
+GitHub main → Netlify 自动运行 `npm test && npm run build` → 通过后发布 `dist`。构建使用固定版本的官方 Supabase SDK，并注入两项公开配置。测试或构建失败时保留旧的线上版本。
 
-各人的文章和生词仍保存在各自浏览器。旧 localhost 或其他域名的本地记录不会自动迁移到新网址；电脑与手机尚不能同步。
+公众邮箱注册和找回密码仍需管理员配置自定义 SMTP；请参照配置文档。没有配置邮件服务不影响已确认账号的密码登录及数据同步。
 
 ## 体验
 
@@ -25,31 +25,30 @@
 - 批量删除：进入“批量管理”后勾选多条记录，或全选当前搜索/筛选结果；确认词条清单后统一删除。切换筛选会取消隐藏条目的选择，删除会同步更新回顾与文章选词高亮，保留原文章和未选中的其他记录。确认删除后无法撤销。
 - 记录：批量输入，或粘贴英文原句后点选生词；支持短语。
 - 回顾：原句阅读、明天再看、按设置间隔回顾、减少出现、撤销上一次操作。
-- 保存：当前浏览器本地保存；支持导出 JSON 备份。
-
-推荐通过部署链接，或静态 HTTP 服务打开 dist 目录。例如在此目录执行 `python -m http.server 4178 --directory dist`，然后访问 http://127.0.0.1:4178/#read 。PDF 模块需要 HTTP/HTTPS 服务。
+- 保存：访客仅在浏览器保存；登录后先写入该账号的本机队列，再同步 Supabase。同步失败会显示待处理状态；同一记录跨设备同时修改时由用户选择版本。支持导出 JSON 备份。
+- 迁移：我的账号 → 迁移此浏览器的访客记录。不会把访客记录自动上传给刚登录的账号；非演示记录按 ID 去重，冲突时停止迁移。
 
 ## 本地运行与测试
+
+需要 Node.js 22+、pnpm 11.25.0 和任一静态 HTTP 服务器。
 
 ```sh
 git clone https://github.com/7eileen/read-keep.git
 cd read-keep
-python -m http.server 4178 --directory dist
+pnpm install --frozen-lockfile
+# 将 .env.example 复制为 .env，填写 Supabase URL 和 publishable key
+pnpm test
+pnpm build
+python -m http.server 4180 --directory dist
 ```
 
-需要已安装 Python 3；也可用任意静态 HTTP 服务器托管 `dist` 目录。浏览器打开 http://127.0.0.1:4178/ 即可使用。
+访问 http://127.0.0.1:4180/ 。不配置 Supabase 时本地构建支持访客模式；Netlify 构建会拒绝缺少云端配置的部署。PDF 模块需要 HTTP/HTTPS 服务。
 
-使用 Node.js 18 或更新版本运行已有逻辑测试，不需要安装 npm 依赖：
-
-```sh
-npm test
-```
-
-覆盖日期与回顾排期、文章解析与编辑、记录删除、词典数据处理，以及点词切换和异步翻译取消。词典测试使用随仓库提供的离线样本，来源见 [tests/README.md](tests/README.md)。这些逻辑测试不替代真实浏览器中的 PDF 导入、翻译服务和手机布局检查。
+测试覆盖原有七组业务逻辑，以及同步合并、迁移、版本冲突、账号缓存隔离、离线队列、保存失败回滚和保存期间继续编辑。`node tests/live-supabase.cjs` 是单独运行的真实数据库集成测试，需要两个专用测试账号；**会删除这两个测试账号的学习数据**，不得填真实用户账号。详细运行方法见配置文档。常规 CI 不需要也不保存用户密码。
 
 ## 范围说明
 
-本版本使用自拟示例语料，不是真实雅思试题。数据保存在当前浏览器，不跨设备同步；尚未接入账户、专门的 AI 语境释义或系统通知。导出包含词条和文章，本版尚无导入恢复界面。
+本版本使用自拟示例语料，不是真实雅思试题。访客与已登录账号的数据空间分开；已同步内容在 Supabase，未同步内容仍依赖本机缓存。尚未接入专门的 AI 语境释义或系统通知。导出包含词条和文章，本版尚无导入恢复界面。
 
 PDF 在本地提取为文字阅读视图，不保留原版排版；最多 10 MB、40 页、60,000 字符。不支持扫描版 OCR。复杂分栏可能需要手动修正文段。PDF.js 6.4.299 随 dist/vendor 打包，协议文件同时保留。
 
@@ -64,7 +63,10 @@ PDF 在本地提取为文字阅读视图，不保留原版排版；最多 10 MB�
 - dist/index.html：页面入口。
 - dist/styles.css：桌面与手机样式。
 - dist/core.js：记录、去重、日期与回顾排期。
-- dist/app.js：交互与本地保存。
+- dist/app.js：现有界面与统一保存入口。
+- dist/cloud-core.js / sync-engine.js / cloud-ui.js：三方合并、同步队列、账号界面与 Supabase 通信。
+- supabase/migrations/20261012_journal.sql：数据库表、RLS、版本触发器与事务函数。
+- scripts/build.cjs / src/supabase-client.js：公开配置生成与官方 SDK 打包。
 - dist/reader-core.js：文本切词、选区、原句与译文更新校验。
 - dist/reader.js / reader.css：文章导入、阅读选词与响应式布局。
 - dist/translate.js：在线翻译请求、并发控制、缓存和异常反馈。
@@ -75,4 +77,4 @@ PDF 在本地提取为文字阅读视图，不保留原版排版；最多 10 MB�
 - tests/：现有逻辑测试与离线词典样本。
 - docs/DEPLOYMENT.md：部署方法与当前线上站点。
 
-用户自己的文章与生词保存在浏览器，不包含在仓库中。
+用户文章与生词不包含在 GitHub 仓库或 Netlify 静态发布文件中。登录后的记录保存在 Supabase；访客记录和账号待同步缓存保存在浏览器。

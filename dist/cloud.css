@@ -1,0 +1,7 @@
+.sync-bar{max-width:1240px;margin:12px auto 0;padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:#edf2e6;border:1px solid #dce4d5;border-radius:14px;color:var(--ink);font-size:13px}
+.sync-bar[hidden]{display:none}.sync-bar>span{flex:1;min-width:180px}
+.account-email{overflow-wrap:anywhere;font-weight:600}.account-info,.account-conflict{background:#eef2e9;border:1px solid #dfe6d7;border-radius:14px;padding:16px;margin:18px 0;font-size:14px;line-height:1.7}
+.account-conflict{background:#f7efe4;border-color:#eadfcd}.account-conflict .btn{margin:5px 0;white-space:normal}
+.account-actions{display:flex;gap:16px;flex-wrap:wrap;margin-top:18px}#auth-form .btn{width:100%}#auth-message{color:var(--ink);font-size:14px;line-height:1.7;margin:14px 0;overflow-wrap:anywhere}
+#account-button{max-width:150px;white-space:nowrap}#main[inert]{opacity:.55}
+@media(max-width:700px){.sync-bar{margin:10px 16px 0;padding:12px 14px;gap:10px}.sync-bar>span{min-width:160px}#account-button{font-size:12px;padding:8px 10px}.header-actions{gap:6px}.account-actions .btn{flex:1}}

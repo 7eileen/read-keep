@@ -7,3 +7,6 @@ node_modules/
 *.log
 .DS_Store
 Thumbs.db
+dist/config.js
+dist/vendor/supabase.js
+work/

@@ -9,4 +9,7 @@ assert.equal(ctx.state.entries.length,2);
 vm.runInContext('collectRange(0,6,11);',ctx);assert.equal(ctx.state.entries.length,1);assert.equal(ctx.state.entries[0].rangeStart,20);
 saveOK=false;vm.runInContext('collectRange(0,20,25);',ctx);assert.equal(ctx.state.entries.length,1,'Failed saves preserve selected entry');
 vm.runInContext('collectRange(0,6,11);',ctx);assert.equal(ctx.state.entries.length,1,'Failed saves do not leave unsaved selections');saveOK=true;
+const beforeArticles=JSON.stringify(ctx.state.articles);saveOK=false;
+assert.equal(vm.runInContext("saveArticle({title:'Unsaved',text:'This should be retained as a draft.'})",ctx),null);
+assert.equal(JSON.stringify(ctx.state.articles),beforeArticles,'Failed article saves do not replace the reading library');saveOK=true;
 (async()=>{const id=ctx.state.entries[0].id;const pending=vm.runInContext(`translateEntry(${JSON.stringify(id)})`,ctx);vm.runInContext(`uncollectEntry(${JSON.stringify(id)})`,ctx);finish({meaning:'适应',sentenceTranslation:'城市适应。',lexicon:{status:'missing'}});await pending;assert.equal(ctx.state.entries.length,0,'Late translations cannot restore deselected entries');console.log('PASS: same-position toggle, independent encounters, save failure rollback, cancellation during translation.');})();

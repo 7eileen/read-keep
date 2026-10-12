@@ -4,9 +4,17 @@
   "private": true,
   "description": "Read & Keep: a contextual IELTS reading vocabulary journal",
   "scripts": {
-    "test": "node tests/run.cjs"
+    "test": "node tests/run.cjs",
+    "build": "node scripts/build.cjs"
   },
   "engines": {
-    "node": ">=18"
-  }
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.117.3"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  },
+  "packageManager": "pnpm@11.25.0"
 }
