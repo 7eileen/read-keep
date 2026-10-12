@@ -1,0 +1,8 @@
+# Netlify runs the existing test suite before publishing the static site.
+# A non-zero exit stops the deployment and leaves the current site live.
+[build]
+  command = "npm test"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"

@@ -6,11 +6,22 @@
 
 ## 静态文件
 
-发布目录是 `dist`，无需构建命令。必须完整保留 `dist/vendor` 中的 PDF.js 模块和许可文件。不要只上传 index.html。
+发布目录是 `dist`，应用无需编译；Netlify 的构建步骤用于执行现有测试。必须完整保留 `dist/vendor` 中的 PDF.js 模块和许可文件。
 
-现有站点通过 Netlify 手动上传部署。更新时进入这个已有项目的 Overview 或 Deploys，上传 dist 文件夹，或上传根目录直接包含 index.html 的 ZIP。
+## 自动发布与测试
 
-上传 GitHub 本身不会更新现有网站。目前尚未配置 GitHub 到 Netlify 的自动部署。如果后续连接 Git 仓库，选择本仓库的 main 分支，发布目录填写 dist，构建命令留空。
+现有 Netlify 项目使用本仓库 `7eileen/read-keep` 的 `main` 分支作为生产来源。根目录 `netlify.toml` 定义发布设置：
+
+- 基础目录：仓库根目录。
+- Node.js：22。
+- 构建命令：`npm test`，依次运行现有 7 组逻辑测试。
+- 发布目录：`dist`。
+
+后续推送或合并到 `main` 后，Netlify 自动获取该提交并运行测试。测试通过才发布 `dist`；测试退出码非零时部署失败，当前线上版本继续提供服务。Netlify 的部署日志可查看具体测试输出和提交号。`netlify.toml` 中的设置优先于后台同名设置。
+
+建议修改后先在本地运行 `npm test`，再提交到 GitHub。若测试失败，修复并推送新的提交即可重新触发部署。现有测试主要验证业务逻辑，不替代真实浏览器、PDF 文件和外部翻译服务验证。
+
+日常更新走 Git 自动部署流程。手动上传目录或 ZIP 的部署方式不会执行这里的测试命令，因此不作为日常发布方式。`.netlify/` 已加入 `.gitignore`，本地站点关联文件不会进入仓库。
 
 新项目应检查访问权限为 Public，访客无需站点密码或 Netlify 团队登录。手机布局使用底部导航；当前项目已关闭会遮挡导航的可选 Powered by Netlify 角标。
 

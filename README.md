@@ -6,7 +6,9 @@
 
 2026-10-12 已发布至 [Netlify 正式站点](https://enchanting-faun-41350f.netlify.app/)，访客不需要登录。
 
-[GitHub 仓库](https://github.com/7eileen/read-keep) · [部署说明](docs/DEPLOYMENT.md)。此项目是原生 HTML、CSS 和 JavaScript 静态网站，没有构建步骤，也不需要配置 API 密钥。
+[GitHub 仓库](https://github.com/7eileen/read-keep) · [部署说明](docs/DEPLOYMENT.md)。此项目是原生 HTML、CSS 和 JavaScript 静态网站，无需编译，也不需要配置 API 密钥。
+
+更新流程：推送到 `main` → Netlify 运行 `npm test` → 测试通过后发布 `dist`。测试失败时保留当前线上版本。配置保存在仓库根目录的 `netlify.toml`，本地关联目录 `.netlify/` 已忽略。
 
 各人的文章和生词仍保存在各自浏览器。旧 localhost 或其他域名的本地记录不会自动迁移到新网址；电脑与手机尚不能同步。
 
