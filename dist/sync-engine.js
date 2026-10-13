@@ -2,8 +2,8 @@
   'use strict';
   const C=typeof module!=='undefined'&&module.exports?require('./cloud-core.js'):root.CloudCore;
   class SyncEngine {
-    constructor({userId,storage,remote,onState=()=>{},onStatus=()=>{}}){
-      this.userId=userId;this.storage=storage;this.remote=remote;this.onState=onState;this.onStatus=onStatus;
+    constructor({userId,storage,remote,onState=()=>{},onStatus=()=>{},prepare=state=>state}){
+      this.userId=userId;this.storage=storage;this.remote=remote;this.onState=onState;this.onStatus=onStatus;this.prepare=prepare;
       this.key=C.accountKey(userId);this.base=C.empty();this.local=C.empty();this.versions={};this.status='loading';this.disposed=false;this.ready=false;
       const raw=storage.getItem(this.key);
       if(raw){const saved=JSON.parse(raw);if(saved.userId!==userId)throw new Error('账号缓存不匹配');this.base=saved.base;this.local=saved.local;this.versions=saved.versions;}
@@ -28,6 +28,7 @@
           const current=await this.remote.read();if(this.disposed)return;
           const merge=C.merge(this.base,this.local,current.state,preference);
           if(merge.conflicts.length&&!preference){this.conflicts=merge.conflicts;this.ready=true;this.notify('conflict','这些记录已在另一设备修改：'+merge.conflicts.length+' 条');return;}
+          merge.state=this.prepare(merge.state);
           const changes=C.changes(current.state,merge.state,current.versions);
           const before=C.copy(this.local);
           const saved=changes.length?await this.remote.apply(changes):current;
