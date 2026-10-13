@@ -5,13 +5,25 @@
   function addDays(key,days){const [y,m,d]=key.split('-').map(Number);return dateKey(new Date(y,m-1,d+Number(days),12));}
   function normalize(word){return word.trim().toLocaleLowerCase().replace(/\s+/g,' ');}
   function parseBatch(text){return text.split(/\r?\n/).map(line=>line.trim()).filter(Boolean).map(line=>{const [word,meaning='',...sentence]=line.split(/[|｜\t]/).map(x=>x.trim());return {word,meaning,sentence:sentence.join(' | ')};}).filter(x=>x.word);}
-  function addEntries(existing,rows,source,today=dateKey()){
+  function addEntries(existing,rows,source,today=dateKey(),batch=null){
     const next=existing.slice();let added=0;
     rows.forEach((row,i)=>{
       const word=row.word.trim(),sentence=(row.sentence||'').trim();
-      if(!word || next.some(x=>normalize(x.word)===normalize(word)&&x.source===source&&x.sentence===sentence&&x.created===today))return;
-      next.unshift({id:'e-'+Date.now()+'-'+i+'-'+Math.random().toString(36).slice(2,6),word,meaning:(row.meaning||'').trim(),sentence,source:source.trim()||'未命名阅读',created:today,due:addDays(today,1),reviews:0,star:false,note:'',level:'new'});added++;
+      if(!word || next.some(x=>normalize(x.word)===normalize(word)&&x.sentence===sentence&&(batch?x.batch?.id===batch.id:x.source===source&&x.created===today)))return;
+      next.unshift({id:'e-'+Date.now()+'-'+i+'-'+Math.random().toString(36).slice(2,6),word,meaning:(row.meaning||'').trim(),sentence,source:source.trim()||'未命名阅读',created:today,due:addDays(today,1),reviews:0,star:false,note:'',level:'new',...(batch?{batch:{...batch}}:{})});added++;
     });return {entries:next,added};
+  }
+  function notebooks(state){
+    const groups=new Map();
+    for(const a of state.articles||[])groups.set('article:'+a.id,{id:'article:'+a.id,articleId:a.id,title:a.title,created:a.created,createdAt:a.importedAt||a.created,kind:a.kind||'文章',legacy:false,entries:[]});
+    for(const e of state.entries||[]){
+      const id=e.articleId?'article:'+e.articleId:e.batch?.id?'batch:'+e.batch.id:'legacy:'+JSON.stringify([e.source,e.created]);
+      const createdAt=e.articleImportedAt||e.batch?.createdAt||e.created;
+      if(!groups.has(id))groups.set(id,{id,articleId:null,title:e.articleId?e.source:e.batch?.title||e.source,created:e.created,createdAt,kind:e.articleId?'文章词汇':e.batch?'批量录入':e.sample?'示例词汇':'历史记录',legacy:!e.articleId&&!e.batch?.id,entries:[]});
+      const group=groups.get(id);group.entries.push(e);
+      if(!group.articleId&&createdAt<group.createdAt){group.createdAt=createdAt;group.created=e.created;}
+    }
+    return [...groups.values()].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))||a.id.localeCompare(b.id));
   }
   function dueEntries(entries,today=dateKey()){return entries.filter(e=>e.due<=today).sort((a,b)=>Number(b.star)-Number(a.star)||a.due.localeCompare(b.due)||a.created.localeCompare(b.created));}
   function removeEntries(entries,ids,session=null){
@@ -42,6 +54,6 @@
     ];
     return rows.map((r,i)=>({id:'sample-'+i,word:r[0],meaning:r[1],sentence:r[2],source:r[3],created:addDays(today,r[4]),due:addDays(today,r[5]),phonetic:r[6],note:r[7],reviews:r[4]<-1?1:0,level:r[4]<-1?'reviewed':'new',star:i===0||i===6,sample:true}));
   }
-  const api={dateKey,addDays,normalize,parseBatch,addEntries,dueEntries,reviewed,removeEntries,seed};
+  const api={dateKey,addDays,normalize,parseBatch,addEntries,notebooks,dueEntries,reviewed,removeEntries,seed};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.WordJournal=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

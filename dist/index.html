@@ -12,20 +12,20 @@
   <link rel="stylesheet" href="bulk.css?v=11">
   <link rel="stylesheet" href="lexicon.css?v=11">
   <link rel="stylesheet" href="cloud.css?v=11">
-  <link rel="stylesheet" href="theme.css?v=12">
+  <link rel="stylesheet" href="theme.css?v=13">
   <script defer src="config.js?v=11"></script>
   <script defer src="vendor/supabase.js?v=11"></script>
-  <script defer src="cloud-core.js?v=11"></script>
+  <script defer src="cloud-core.js?v=13"></script>
   <script defer src="sync-engine.js?v=11"></script>
-  <script defer src="core.js?v=11"></script>
-  <script defer src="reader-core.js?v=11"></script>
+  <script defer src="core.js?v=13"></script>
+  <script defer src="reader-core.js?v=13"></script>
   <script defer src="lexicon.js?v=11"></script>
   <script defer src="translate.js?v=11"></script>
   <script defer src="lexicon-ui.js?v=11"></script>
-  <script defer src="reader.js?v=11"></script>
+  <script defer src="reader.js?v=13"></script>
   <script defer src="bulk.js?v=11"></script>
-  <script defer src="app.js?v=11"></script>
-  <script defer src="cloud-ui.js?v=12"></script>
+  <script defer src="app.js?v=13"></script>
+  <script defer src="cloud-ui.js?v=13"></script>
 </head>
 <body>
   <a class="skip" href="#main">跳到主要内容</a>
@@ -33,7 +33,7 @@
     <div class="header-inner">
       <a href="#today" class="brand" aria-label="拾词首页"><span class="brand-icon" id="brand-icon"></span><span>拾词</span></a>
       <nav class="desktop-nav" aria-label="主导航" id="desktop-nav"></nav>
-      <div class="header-actions"><button class="demo-badge" id="account-button" data-cloud="account">登录</button><button class="btn primary desktop-add" data-action="add"><span data-icon="plus"></span>记录生词</button><button class="mobile-add" aria-label="记录生词" data-action="add"><span data-icon="plus"></span></button></div>
+      <div class="header-actions"><span id="guest-badge" class="guest-badge" title="访客记录仅保存在此浏览器" hidden>访客</span><button class="demo-badge" id="account-button" data-cloud="account">登录</button></div>
     </div>
   </header>
   <div id="sync-bar" class="sync-bar" role="status" hidden></div>

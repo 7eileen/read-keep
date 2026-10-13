@@ -33,11 +33,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .nav-btn.active {background: var(--sage); color: var(--green); font-weight: 650;}
 .nav-btn:hover {background: #f3f8fa;}
 .nav-btn.active:hover {background: #e3f4ec;}
-.header-actions {gap: 16px;}
+.header-actions {gap: 10px;}
 .demo-badge, #account-button {font-size: 13px; font-weight: 500; letter-spacing: 0; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 8px 2px; color: var(--muted);}
 .demo-badge span {font: inherit;}
 #account-button .icon {width: 20px; height: 20px;}
-#account-button .guest-badge {display: inline-flex; align-items: center; padding: 3px 7px; border-radius: 7px; background: var(--blue); color: #647f90; font-size: 11px; line-height: 1.5; white-space: nowrap;}
+.guest-badge {display: inline-flex; align-items: center; padding: 3px 7px; border-radius: 7px; background: var(--blue); color: #647f90; font-size: 11px; line-height: 1.5; white-space: nowrap;}
+.guest-badge[hidden] {display: none;}
+#account-button[data-guest="true"] {min-height: 42px; padding: 9px 19px; border-radius: 12px; background: var(--green); color: #fff; font-weight: 600; box-shadow: 0 3px 12px #25856918;}
+#account-button[data-guest="true"]:hover {background: var(--green-hover);}
 .btn {min-height: 46px; border-radius: 12px; padding: 11px 18px; font-size: 14px; font-weight: 600; border-color: var(--line); background: #fff; gap: 9px;}
 .btn:hover {background: #f4f9fb; border-color: #cfdfe4;}
 .btn.primary {background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 4px 10px #23826816;}
@@ -60,6 +63,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .page-intro {margin-bottom: 26px; align-items: center; gap: 20px;}
 .page-intro h1 {font-size: 30px; line-height: 1.4; font-weight: 720; letter-spacing: -.5px; margin: 0;}
 .page-intro p {font-size: 13px; margin-top: 7px;}
+.page-intro>div:first-child {min-width: 0;}
+.page-intro h1 {overflow-wrap: anywhere;}
+body[data-page="today"] .page-intro {flex-wrap: nowrap; align-items: flex-start;}
+body[data-page="today"] .page-intro>div:first-child {flex-basis: auto;}
+.page-intro>.record-button {flex-shrink: 0; white-space: nowrap;}
 .date-label {font-size: 12px; padding: 0;}
 .overview {grid-template-columns: minmax(0,1.6fr) minmax(280px,1fr); gap: 22px;}
 .review-banner {background: linear-gradient(115deg,#f0faf6,#eff8fc); padding: 30px 34px; min-height: 244px; border: 1px solid #e3f0ec; border-radius: var(--radius);}
@@ -94,6 +102,27 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .section-heading h2 {font-size: 17px; font-weight: 650;}
 .section-heading .count {background: var(--sage); color: var(--green); border-radius: 7px; padding: 2px 7px; font-size: 11px;}
 .entry-grid, .library-grid {gap: 16px;}
+.notebook-grid {display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px;}
+.notebook-card {display: block; min-width: 0; border: 1px solid var(--line); border-radius: 18px; background: #fff; box-shadow: 0 3px 16px #365b6508; overflow: hidden;}
+.notebook-card:hover {border-color: #bfded2; box-shadow: 0 8px 24px #386b7012; transform: translateY(-2px);}
+.notebook-cover {min-height: 164px; padding: 20px; background: linear-gradient(125deg,#eef9f3,#f3faf9);}
+.notebook-card:nth-child(even) .notebook-cover {background: linear-gradient(125deg,#eef6fe,#f3fafc);}
+.notebook-kind {display: flex; align-items: center; gap: 7px; font-size: 11px; color: #63877c;}
+.notebook-kind .icon {width: 17px; height: 17px;}
+.notebook-total {display: flex; align-items: baseline; gap: 7px; margin: 9px 0 12px;}
+.notebook-total strong {font-size: 34px; line-height: 1.2; font-weight: 650; letter-spacing: -1px;}
+.notebook-total>span {font-size: 11px; color: var(--muted);}
+.notebook-preview {display: flex; flex-wrap: wrap; align-content: flex-start; gap: 5px; height: 53px; overflow: hidden;}
+.notebook-preview>span {flex: 0 0 auto; max-width: 100%; background: #ffffffa8; border-radius: 6px; padding: 3px 7px; font-size: 11px; color: #53756d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;}
+.notebook-card-body {padding: 17px 20px 16px;}
+.notebook-card h3 {font-size: 16px; font-weight: 600; line-height: 1.5; margin: 0 0 12px; height: 3em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;}
+.notebook-meta {display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 11px;}
+.notebook-meta .icon {width: 17px; height: 17px; color: var(--green); flex-shrink: 0;}
+.notebook-breadcrumb {display: flex; align-items: center; gap: 9px; margin: 0 0 22px; color: var(--muted); font-size: 12px; min-width: 0;}
+.notebook-breadcrumb>a {flex-shrink: 0;}
+.notebook-breadcrumb>span:last-of-type {overflow: hidden; white-space: nowrap; text-overflow: ellipsis;}
+.notebook-breadcrumb>a:last-child {margin-left: auto;}
+.notebook-legacy-note {font-size: 12px; color: var(--muted); margin: -10px 0 20px;}
 .word-card {padding: 20px 22px; border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 3px 17px #365b6506; background: #fff; transition: box-shadow .2s, border-color .2s;}
 .word-card:hover {border-color: #cde2dc; box-shadow: 0 6px 22px #386b7010;}
 .word {font-family: var(--body); font-size: 24px; font-weight: 620; letter-spacing: -.45px; line-height: 1.35;}
@@ -319,6 +348,17 @@ dialog[open] {animation: dialog-in .2s ease-out both;}
   .section-heading h2 {font-size: 16px;}
   .text-link {font-size: 12px;}
   .entry-grid, .library-grid {grid-template-columns: 1fr; gap: 13px;}
+  #account-button[data-guest="true"] {min-height: 40px; padding: 9px 18px; font-size: 13px;}
+  .page-intro>.record-button {min-height: 42px; padding: 10px 13px; font-size: 12px; margin-top: 1px;}
+  .notebook-grid {gap: 12px;}
+  .notebook-cover {padding: 16px 14px; min-height: 145px;}
+  .notebook-total strong {font-size: 31px;}
+  .notebook-preview {gap: 4px;}
+  .notebook-preview>span {font-size: 10px; padding-inline: 5px;}
+  .notebook-card-body {padding: 14px;}
+  .notebook-card h3 {font-size: 14px; margin-bottom: 10px;}
+  .notebook-meta {font-size: 10px; gap: 4px;}
+  .notebook-breadcrumb {gap: 7px; font-size: 11px; margin-bottom: 20px;}
   .word-card {padding: 18px 20px; border-radius: 17px;}
   .word {font-size: 25px;}
   .sentence {font-size: 14px; line-height: 1.85; min-height: 0;}
