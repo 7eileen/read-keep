@@ -7,8 +7,8 @@
   function caption(){return user?(captions[engine?.status]||'正在读取账号数据'):'访客模式 · 仅此浏览器保存';}
   function refreshStatus(){
     const button=$('#account-button'),bar=$('#sync-bar');
-    if(button){button.innerHTML=icon('user')+`<span>${user?'我的账号':'登录'}</span>`;button.title=user?.email||'登录后跨设备保存';}
-    if(bar){bar.hidden=false;bar.dataset.status=booting?'loading':user?(engine?.status||'loading'):'guest';bar.innerHTML=`<span>${icon(user?'cloud':'user')}${esc(booting?'正在检查登录状态…':caption())}</span>${user?'<button class="text-link" data-cloud="sync">同步</button>':'<button class="text-link" data-cloud="account">登录同步</button>'}${engine?.status==='conflict'?'<button class="text-link" data-cloud="account">处理冲突</button>':''}`;}
+    if(button){button.innerHTML=user?icon('user')+'<span>我的账号</span>':`${booting?icon('user'):'<span class="guest-badge">访客</span>'}<span>登录</span>`;button.title=user?.email||'访客记录仅保存在此浏览器，登录后可跨设备保存';}
+    if(bar){bar.hidden=!user&&!booting;bar.dataset.status=booting?'loading':user?(engine?.status||'loading'):'guest';bar.innerHTML=bar.hidden?'':`<span>${icon(user?'cloud':'user')}${esc(booting?'正在检查登录状态…':caption())}</span>${user?'<button class="text-link" data-cloud="sync">同步</button>':''}${engine?.status==='conflict'?'<button class="text-link" data-cloud="account">处理冲突</button>':''}`;}
     document.querySelectorAll('[data-sync-caption]').forEach(el=>el.textContent=caption());
     const locked=booting||Boolean(user&&!engine?.ready);
     $('#main').inert=locked;

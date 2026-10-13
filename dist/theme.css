@@ -37,6 +37,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .demo-badge, #account-button {font-size: 13px; font-weight: 500; letter-spacing: 0; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 8px 2px; color: var(--muted);}
 .demo-badge span {font: inherit;}
 #account-button .icon {width: 20px; height: 20px;}
+#account-button .guest-badge {display: inline-flex; align-items: center; padding: 3px 7px; border-radius: 7px; background: var(--blue); color: #647f90; font-size: 11px; line-height: 1.5; white-space: nowrap;}
 .btn {min-height: 46px; border-radius: 12px; padding: 11px 18px; font-size: 14px; font-weight: 600; border-color: var(--line); background: #fff; gap: 9px;}
 .btn:hover {background: #f4f9fb; border-color: #cfdfe4;}
 .btn.primary {background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 4px 10px #23826816;}
