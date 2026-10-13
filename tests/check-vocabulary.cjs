@@ -26,4 +26,11 @@ for(const change of CC.changes(CC.empty(),s,{}))snapshot[change.table].push({id:
 const restored=CC.decode(JSON.parse(JSON.stringify(snapshot))).state;assert.equal(restored.notebooks.find(b=>b.id==='first').title,'Renamed');assert.equal(restored.notebooks.length,5);assert.equal(V.groups(restored,true).length,19);
 const local=V.renameBook(s,'first','Device A'),remote=V.mark(s,['sustain'],true);const merged=CC.merge(s,local,remote);assert.equal(merged.conflicts.length,0);assert.equal(merged.state.notebooks.find(b=>b.id==='first').title,'Device A');assert.equal(V.groups(merged.state,true).find(g=>g.key==='sustain').entries.length,3);
 assert.equal(V.groups(CC.empty(),true).length,0);
+const cloudLegacy=CC.decode({articles:[{id:'a',payload:legacy.articles[0],version:1}],entries:[{id:'old',payload:legacy.entries[0],version:1}]}).state;
+assert.equal(V.upgrade(cloudLegacy).notebooks[0].articleId,'a','Cloud decode must not hide legacy article membership');
+let account=V.importWords(V.upgrade({}),'Account',[],{id:'account'}),guest=V.importWords(V.upgrade({}),'Guest',[],{id:'guest'});
+account.study_sessions=[{id:'active',sessionId:'account-session'}];guest.study_sessions=[{id:'active',sessionId:'guest-session'}];
+assert.equal(CC.migrate(account,guest).study_sessions[0].sessionId,'account-session','Migration keeps active account queue');
+guest.notebooks[0].title='Account';assert.throws(()=>CC.migrate(account,guest),/同名/);
+const senses=V.importWords(V.upgrade({}),'Senses',[{word:'cover',meaning:'覆盖'},{word:'cover',meaning:'报道'},{word:'COVER',meaning:'报道'}]);assert.equal(senses.entries.length,2,'Different meanings in the same import are not discarded');
 console.log('PASS: 100/20 selection, independent empty notebooks, unique names, three-source aggregation, non-destructive removal, legacy migration and cross-device merge.');

@@ -9,4 +9,5 @@ node_modules/
 Thumbs.db
 dist/config.js
 dist/vendor/supabase.js
+dist/vendor/docx.js
 work/

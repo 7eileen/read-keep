@@ -49,6 +49,7 @@ do $$ declare t text; begin
     execute format('create trigger journal_stamp before insert or update on public.%I for each row execute function public.journal_stamp()',t);
   end loop;
 end $$;
+create unique index if not exists notebooks_owner_title on public.notebooks(owner_id,lower(regexp_replace(btrim(payload->>'title'),'\s+',' ','g')));
 create or replace function public.journal_load() returns jsonb language sql stable security invoker set search_path='' as $$
  select jsonb_build_object(
  'articles',coalesce((select jsonb_agg(to_jsonb(r)-'owner_id') from public.articles r where owner_id=auth.uid()),'[]'::jsonb),

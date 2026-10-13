@@ -6,7 +6,7 @@
       this.userId=userId;this.storage=storage;this.remote=remote;this.onState=onState;this.onStatus=onStatus;this.prepare=prepare;
       this.key=C.accountKey(userId);this.base=C.empty();this.local=C.empty();this.versions={};this.status='loading';this.disposed=false;this.ready=false;
       const raw=storage.getItem(this.key);
-      if(raw){const saved=JSON.parse(raw);if(saved.userId!==userId)throw new Error('账号缓存不匹配');this.base=saved.base;this.local=saved.local;this.versions=saved.versions;}
+      if(raw){const saved=JSON.parse(raw);if(saved.userId!==userId)throw new Error('账号缓存不匹配');this.base=saved.base;this.local=saved.local;this.versions=saved.versions;this.ready=true;}
     }
     cache(local=this.local){this.storage.setItem(this.key,JSON.stringify({userId:this.userId,base:this.base,local,versions:this.versions}));}
     notify(status,error=''){this.status=status;this.error=error;this.onStatus(status,error);}
@@ -15,6 +15,14 @@
       const next=C.copy(state);this.cache(next);this.local=next;this.notify('pending');
     }
     pending(){return C.changes(this.base,this.local,this.versions).length>0;}
+    receive(saved){
+      if(saved.userId!==this.userId||this.disposed)return;
+      const merge=C.merge(this.base,this.local,saved.local);
+      if(merge.conflicts.length){this.notify('conflict','另一页面修改了相同记录，请同步后处理冲突。');return;}
+      this.base=C.copy(saved.base);this.local=merge.state;this.versions={...saved.versions};this.ready=true;
+      if(C.changes(saved.local,this.local,{}).length)this.cache();
+      this.onState(C.copy(this.local));const pending=this.pending();this.notify(pending?'pending':'synced');return pending;
+    }
     dispose(){this.disposed=true;}
     sync(preference){
       if(this.disposed)return Promise.resolve();
@@ -31,7 +39,9 @@
           merge.state=this.prepare(merge.state);
           const changes=C.changes(current.state,merge.state,current.versions);
           const before=C.copy(this.local);
-          const saved=changes.length?await this.remote.apply(changes):current;
+          let saved;
+          try{saved=changes.length?await this.remote.apply(changes):current;}
+          catch(error){if(error.code==='PT409'&&round<7)continue;throw error;}
           if(this.disposed)return;
           // Only changes made after this request started override its acknowledgement.
           this.local=C.merge(before,this.local,changes.length?saved.state:merge.state,'local').state;

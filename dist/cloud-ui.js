@@ -19,20 +19,20 @@
   function resetTransient(){
     for(const job of translationJobs.values())job.abort();translationJobs.clear();
     importTicket++;articleDraft={title:'',text:'',pages:[],fileName:'',kind:'粘贴文本',error:'',busy:false};
-    draft={mode:'batch',source:'',batch:'',paragraph:'',selected:{}};
+    draft={source:'',batch:'',format:'txt',rows:[],preview:false};studyRunning=false;studyRevealed=false;
     session=null;query='';sourceFilter='';filter='all';bulkMode=false;bulkSelected.clear();bulkPending=[];
     phraseAnchor=null;nativePhrase=null;readerFocus=null;
     if($('#modal').open)closeDialog();
   }
   function guestState(){
     const raw=localStorage.getItem(KEY);
-    const value=raw?JSON.parse(raw):{...CC.empty(),entries:C.seed()};
+    const value=raw?JSON.parse(raw):CC.empty();
     if(!Array.isArray(value.entries)||!Array.isArray(value.articles||[]))throw new Error('访客记录格式异常，请保留备份');
-    return value;
+    return S.upgrade(value);
   }
   function applyState(next){
-    const changed=!CC.same(state,next);state=next;persistedState=CC.copy(next);
-    if(changed){session=null;render();}
+    const upgraded=S.upgrade(next),changed=!CC.same(state,upgraded);state=upgraded;persistedState=CC.copy(upgraded);
+    if(changed){session=null;studyRevealed=false;render();}
     refreshStatus();
   }
   function remoteFor(userId){
@@ -54,7 +54,7 @@
     try{
       if(!next){applyState(guestState());initializeReader();persistedState=CC.copy(state);}
       else{
-        const active=new SyncEngine({userId:next.id,storage:localStorage,remote:remoteFor(next.id),
+        const active=new SyncEngine({userId:next.id,storage:localStorage,remote:remoteFor(next.id),prepare:S.upgrade,
           onState:value=>{if(generation===epoch)applyState(value);},
           onStatus:()=>{if(generation===epoch)refreshStatus();}
         });
@@ -63,10 +63,10 @@
         applyState(CC.copy(active.local));await active.sync();
       }
     }catch(error){toast('读取失败：'+error.message);}
-    finally{if(generation===epoch){booting=false;render();refreshStatus();if(recovery)authDialog('recovery');}}
+    finally{if(generation===epoch){booting=false;render();refreshStatus();if(recovery)authDialog('recovery');else welcome();}}
   }
   window.CloudSession={
-    caption,refreshStatus,
+    caption,refreshStatus,identity:()=>user?.id||'guest',
     save(next){
       if(booting)throw new Error('登录状态检查中，请稍后再试');
       if(user){if(!engine)throw new Error('账号数据尚未加载');engine.save(next);schedule();}
@@ -75,12 +75,16 @@
     },
     ownsGuest(){return !user&&!booting;}
   };
+  function welcome(){
+    if(user||recovery||localStorage.getItem('read-keep-entered')||state.entries.length||state.articles.length)return;
+    dialogState='welcome';const d=$('#modal');$('#modal-content').innerHTML=`<div class="welcome-dialog"><span class="brand-icon">${icon('book')}</span><h2 id="dialog-title">登录拾词</h2><button class="btn primary" data-cloud="login">登录 / 注册</button><button class="btn" data-cloud="guest">访客使用</button><p>访客记录保存在此浏览器，登录后可迁移。</p></div>`;if(!d.open)d.showModal();
+  }
   function authDialog(mode='login'){
     authMode=mode;dialogState='account';
     if(!configured){showDialog('账号同步尚未配置','<p class="dialog-subtitle">当前仍可在本浏览器记录。完成 Supabase 和网站配置后即可登录同步。</p>');return;}
     if(user&&mode!=='recovery'){
       let count=0;try{count=(guestState().entries||[]).filter(e=>!e.sample).length;}catch{}
-      showDialog('我的账号',`<p class="account-email">${esc(user.email)}</p><div class="account-info"><p id="account-sync-status">${esc(caption())}</p><p>在其他设备登录同一账号即可读取已同步记录。</p></div><div class="account-actions"><button class="btn primary" data-cloud="sync">立即同步</button><button class="btn" data-action="export">导出当前记录</button></div>${engine?.status==='conflict'?'<div class="account-conflict"><p>同一记录在本机和云端都被修改。请先导出当前记录，再选择冲突记录采用哪个版本；其他记录会继续合并。</p><button class="btn" data-cloud="resolve-local">冲突记录采用本机版本</button><button class="btn" data-cloud="resolve-remote">冲突记录采用云端版本</button></div>':''}<div class="account-info"><p>本机有 ${count} 条访客生词。迁移后加入当前账号，重复记录会跳过。</p><button class="btn" data-cloud="migrate">迁移访客记录</button></div><p id="auth-message" role="status"></p><button class="text-link" data-cloud="logout">退出当前设备</button>`);
+      showDialog('我的账号',`<p class="account-email">${esc(user.email)}</p><div class="account-info"><p id="account-sync-status">${esc(caption())}</p><p>在其他设备登录同一账号即可读取已同步记录。</p></div><div class="account-actions"><button class="btn primary" data-cloud="sync">立即同步</button><button class="btn" data-action="export">导出当前记录</button></div>${engine?.status==='conflict'?'<div class="account-conflict"><p>同一记录在本机和云端都被修改。请先导出当前记录，再选择冲突记录采用哪个版本；其他记录会继续合并。</p><button class="btn" data-cloud="resolve-local">冲突记录采用本机版本</button><button class="btn" data-cloud="resolve-remote">冲突记录采用云端版本</button></div>':''}<div class="account-info"><p>本机有 ${count} 条访客词汇。迁移后加入当前账号，重复记录会跳过。</p><button class="btn" data-cloud="migrate">迁移访客记录</button></div><p id="auth-message" role="status"></p><button class="text-link" data-cloud="logout">退出当前设备</button>`);
     }else{
       const title=mode==='signup'?'注册':mode==='reset'?'找回密码':mode==='recovery'?'设置新密码':'登录';
       showDialog(title,`<form id="auth-form">${mode==='recovery'?'':'<div class="form-row"><label for="auth-email">邮箱</label><input id="auth-email" name="email" type="email" autocomplete="email" required maxlength="254"></div>'}${mode==='reset'?'':`<div class="form-row"><label for="auth-password">${mode==='recovery'?'新密码':'密码'}</label><input id="auth-password" placeholder="至少 8 位" name="password" type="password" autocomplete="${mode==='login'?'current-password':'new-password'}" minlength="8" maxlength="128" required></div>`}<p id="auth-message" role="status"></p><button class="btn primary" id="auth-submit" type="submit">${mode==='signup'?'注册':mode==='reset'?'发送重置邮件':mode==='recovery'?'保存新密码':'登录'}</button></form>${mode==='recovery'?'':`<div class="account-actions"><button class="text-link" data-cloud="${mode==='signup'?'login':'signup'}">${mode==='signup'?'返回登录':'创建账号'}</button><button class="text-link" data-cloud="${mode==='reset'?'login':'reset'}">${mode==='reset'?'返回登录':'忘记密码'}</button></div>`}`);
@@ -108,6 +112,7 @@
   });
   document.addEventListener('click',async event=>{
     const button=event.target.closest('[data-cloud]');if(!button)return;const action=button.dataset.cloud;
+    if(action==='guest'){localStorage.setItem('read-keep-entered','guest');closeDialog();return;}
     if(['account','login','signup','reset'].includes(action)){authDialog(action==='account'?'login':action);return;}
     if(!engine||!user)return;
     const active=engine,generation=epoch;button.disabled=true;
@@ -130,13 +135,12 @@
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!$('#modal').open)engine?.sync();});
   window.addEventListener('storage',event=>{
     if(engine&&event.key===engine.key&&event.newValue){
-      // Another tab's local pending writes must not be silently overwritten.
-      if(engine.pending()){engine.notify('conflict','同一浏览器另一个页面也有修改，请先保留当前记录并同步。');return;}
-      try{const saved=JSON.parse(event.newValue);if(saved.userId===user.id){engine.base=saved.base;engine.local=saved.local;engine.versions=saved.versions;applyState(CC.copy(saved.local));schedule();}}catch{}
+      // Merge disjoint tab edits; only actual same-record changes require a decision.
+      try{const saved=JSON.parse(event.newValue);if(engine.receive(saved))schedule();}catch{}
     }
   });
   refreshStatus();
-  if(!configured){booting=false;refreshStatus();return;}
+  if(!configured){booting=false;refreshStatus();welcome();return;}
   client=window.ReadKeepSupabase.createClient(config.url,config.publishableKey,{
     auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},
     global:{fetch:async(url,options={})=>{

@@ -12,11 +12,12 @@
     return title;
   }
   function upgrade(input){
-    const legacy=!Array.isArray(input?.notebooks),state=JSON.parse(JSON.stringify(input||{}));
+    const legacy=!input?.settings?.dataVersion||input.settings.dataVersion<2,state=JSON.parse(JSON.stringify(input||{}));
     state.entries=(state.entries||[]).filter(e=>!e.sample);
     state.articles=(state.articles||[]).filter(a=>!a.sample||state.entries.some(e=>e.articleId===a.id));
     state.notebooks=(state.notebooks||[]).filter(b=>!b.sample||state.entries.some(e=>e.notebookId===b.id));
     state.vocabulary=(state.vocabulary||[]).filter(v=>!v.sample);
+    const titles=new Set();for(const b of state.notebooks){const title=key(b.title);if(titles.has(title))throw new Error('词汇册与云端存在同名，请修改本机册名后重新同步。');titles.add(title);}
     state.settings={interval:3,batch:5,autoTranslate:true,...state.settings,dataVersion:2};
     const books=new Map(state.notebooks.map(b=>[b.id,b])),words=new Map(state.vocabulary.map(v=>[v.id,v]));
     function ensure(id,title,created,kind,articleId){
@@ -55,12 +56,13 @@
   function importWords(state,value,rows,{now=new Date().toISOString(),date=C.dateKey(),id=uid()}={}){
     const title=validateTitle(state,value);if(state.notebooks.some(b=>b.id===id))throw new Error('这次导入已保存。');
     if(rows.some(r=>!key(r.word)||String(r.word).length>150))throw new Error('词汇不能为空，且每条最多 150 个字符。');
-    const batch={id,title,createdAt:now};const result=C.addEntries([],rows,title,date,batch);
-    const entries=result.entries.map(e=>{const {star,batch,...rest}=e;return {...rest,notebookId:id};});
+    const batch={id,title,createdAt:now};
+    const entries=prepareRows(rows).flatMap(row=>C.addEntries([],[row],title,date,batch).entries).map((e,index)=>{const {star,batch,...rest}=e;return {...rest,id:id+'-word-'+index,notebookId:id};});
     const vocabulary=new Map((state.vocabulary||[]).map(v=>[v.id,v]));for(const e of entries)if(!vocabulary.has(key(e.word)))vocabulary.set(key(e.word),{id:key(e.word),isUnknown:false});
     return {...state,notebooks:[{id,title,createdAt:now,kind:'词汇导入'},...state.notebooks],entries:[...entries,...state.entries],vocabulary:[...vocabulary.values()]};
   }
+  function prepareRows(rows){const seen=new Set();return rows.map(r=>({word:String(r.word||'').trim(),meaning:String(r.meaning||'').trim(),sentence:String(r.sentence||'').trim()})).filter(r=>{const identity=JSON.stringify([key(r.word),r.meaning,r.sentence]);if(seen.has(identity))return false;seen.add(identity);return true;});}
   function removeRecords(state,ids){const remove=new Set(ids),entries=state.entries.filter(e=>!remove.has(e.id)),keys=new Set(entries.map(e=>key(e.word)));return {...state,entries,vocabulary:state.vocabulary.map(v=>keys.has(v.id)?v:{...v,isUnknown:false}),lastEntry:remove.has(state.lastEntry)?null:state.lastEntry};}
-  const api={key,uid,upgrade,validateTitle,isUnknown,mark,books,groups,renameBook,importWords,removeRecords};
+  const api={key,uid,upgrade,validateTitle,isUnknown,mark,books,groups,renameBook,importWords,removeRecords,prepareRows};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VocabularyCore=api;
 })(globalThis);

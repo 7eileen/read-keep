@@ -7,25 +7,29 @@
   <meta name="description" content="拾词：文章选词、生词记录与定期回顾，支持跨设备同步。">
   <title>拾词 · Read & Keep</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=11">
-  <link rel="stylesheet" href="reader.css?v=11">
-  <link rel="stylesheet" href="bulk.css?v=11">
-  <link rel="stylesheet" href="lexicon.css?v=11">
-  <link rel="stylesheet" href="cloud.css?v=11">
-  <link rel="stylesheet" href="theme.css?v=13">
-  <script defer src="config.js?v=11"></script>
-  <script defer src="vendor/supabase.js?v=11"></script>
-  <script defer src="cloud-core.js?v=13"></script>
-  <script defer src="sync-engine.js?v=11"></script>
-  <script defer src="core.js?v=13"></script>
-  <script defer src="reader-core.js?v=13"></script>
-  <script defer src="lexicon.js?v=11"></script>
-  <script defer src="translate.js?v=11"></script>
-  <script defer src="lexicon-ui.js?v=11"></script>
-  <script defer src="reader.js?v=13"></script>
-  <script defer src="bulk.js?v=11"></script>
-  <script defer src="app.js?v=13"></script>
-  <script defer src="cloud-ui.js?v=13"></script>
+  <link rel="stylesheet" href="styles.css?v=20">
+  <link rel="stylesheet" href="reader.css?v=20">
+  <link rel="stylesheet" href="bulk.css?v=20">
+  <link rel="stylesheet" href="lexicon.css?v=20">
+  <link rel="stylesheet" href="cloud.css?v=20">
+  <link rel="stylesheet" href="theme.css?v=20">
+  <link rel="stylesheet" href="workspace.css?v=20">
+  <script defer src="config.js?v=20"></script>
+  <script defer src="vendor/supabase.js?v=20"></script>
+  <script defer src="cloud-core.js?v=20"></script>
+  <script defer src="sync-engine.js?v=20"></script>
+  <script defer src="core.js?v=20"></script>
+  <script defer src="vocabulary-core.js?v=20"></script>
+  <script defer src="study-core.js?v=20"></script>
+  <script defer src="import-core.js?v=20"></script>
+  <script defer src="reader-core.js?v=20"></script>
+  <script defer src="lexicon.js?v=20"></script>
+  <script defer src="translate.js?v=20"></script>
+  <script defer src="lexicon-ui.js?v=20"></script>
+  <script defer src="reader.js?v=20"></script>
+  <script defer src="bulk.js?v=20"></script>
+  <script defer src="app.js?v=20"></script>
+  <script defer src="cloud-ui.js?v=20"></script>
 </head>
 <body>
   <a class="skip" href="#main">跳到主要内容</a>
@@ -39,6 +43,7 @@
   <div id="sync-bar" class="sync-bar" role="status" hidden></div>
   <main id="main" tabindex="-1"></main>
   <nav class="mobile-nav" aria-label="手机导航" id="mobile-nav"></nav>
+  <button class="btn primary record-button record-dock" data-action="add"><span data-icon="plus"></span>记录</button>
   <dialog id="modal" aria-labelledby="dialog-title"><div id="modal-content"></div></dialog>
   <div id="toast" role="status" aria-live="polite"></div>
 </body>

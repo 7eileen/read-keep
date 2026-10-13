@@ -14,6 +14,8 @@ assert.equal(remember.review_events.length,1);assert.equal(remember.review_event
 assert.equal(S.answer(remember,'remember',now).review_events.length,1,'finished or repeated submit is a no-op');
 assert.equal(S.queue(remember,'all','english',now).length,1,'changing scope must not recreate learned word');
 const resumed=S.start(JSON.parse(JSON.stringify(before)),{scope:'unknown',mode:'english',now});assert.equal(resumed.study_sessions[0].sessionId,'session1');
+assert.equal(S.current(V.mark(before,['cover'],false)),null,'unmarked words leave an unknown session without being deleted');
+let cap=S.start(state,{scope:'all',mode:'english',now,id:'cap'});cap.settings.dailyAmount=1;cap=S.answer(cap,'remember',now);assert.equal(S.current(cap),null,'changing the daily amount also limits a resumed session');
 assert.equal(S.stats(remember,now).reviewed,1);assert.ok(S.activity(remember,'2026-10-13'));
 let removed=V.removeRecords(remember,remember.entries.filter(e=>e.word==='cover').map(e=>e.id));assert.equal(removed.review_events.length,1);assert.equal(S.progress(removed,'cover').reviews,1);
 const next=S.start(remember,{scope:'all',mode:'cloze',now:'2026-10-20T04:00:00.000Z',id:'session2'});assert.notEqual(S.current(next).entry.id,S.current(before).entry.id,'sources rotate');

@@ -36,7 +36,16 @@
     return groups.slice(0,remaining);
   }
   function active(state){return (state.study_sessions||[]).find(s=>s.id==='active');}
-  function current(state){const s=active(state);if(!s)return null;const item=s.items[s.index];if(!item)return null;const entry=state.entries.find(e=>e.id===item.entryId);return entry?{session:s,item,entry}:null;}
+  function current(state){
+    const s=active(state);if(!s)return null;
+    if(stats(state,s.startedAt).reviewed>=Number(state.settings.dailyAmount||20))return null;
+    for(let index=s.index;index<s.items.length;index++){
+      const item=s.items[index];if(s.scope==='unknown'&&!V.isUnknown(state,item.wordId))continue;
+      if((state.review_events||[]).some(e=>e.wordId===item.wordId&&e.at>=s.startedAt))continue;
+      const entry=state.entries.find(e=>e.id===item.entryId&&V.key(e.word)===item.wordId&&eligible(e,s.mode))||state.entries.find(e=>V.key(e.word)===item.wordId&&eligible(e,s.mode));
+      if(entry)return {session:s,item,entry,index};
+    }return null;
+  }
   function start(input,{scope='unknown',mode='english',now=new Date().toISOString(),id=V.uid()}={}){
     if(!scopes.includes(scope)||!modes.includes(mode))throw new Error('学习选项无效。');
     const state=upgrade(input),old=active(state);
@@ -46,9 +55,9 @@
   }
   function answer(input,grade,now=new Date().toISOString()){
     const state=copy(input),c=current(state);if(!c)return state;
-    const id=c.session.sessionId+':'+c.session.index;
+    const id=c.session.sessionId+':'+c.index;
     if(!state.review_events.some(e=>e.id===id))state.review_events.push({id,wordId:c.item.wordId,entryId:c.entry.id,at:now,mode:c.session.mode,scope:c.session.scope,grade});
-    c.session.index++;return state;
+    c.session.index=c.index+1;return state;
   }
   function activity(state,date){return state.entries.some(e=>e.created===date)||(state.review_events||[]).some(e=>day(e.at)===date);}
   function stats(state,now=new Date().toISOString()){

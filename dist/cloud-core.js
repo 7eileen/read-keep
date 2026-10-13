@@ -45,6 +45,8 @@
       const map=new Map((result[table]||[]).map(x=>[x.id,x]));
       for(const item of guest[table]||[]){
         if(item.sample)continue;
+        if(table==='study_sessions'&&map.has(item.id))continue;
+        if(table==='notebooks'&&[...map.values()].some(b=>b.id!==item.id&&b.title.trim().replace(/\s+/g,' ').toLowerCase()===item.title.trim().replace(/\s+/g,' ').toLowerCase()))throw new Error('访客词汇册与账号存在同名，请先重命名访客词汇册再迁移。');
         if(table==='vocabulary'&&map.has(item.id)){map.set(item.id,{...map.get(item.id),isUnknown:map.get(item.id).isUnknown||item.isUnknown});continue;}
         if(map.has(item.id)&&!same(map.get(item.id),item))throw new Error('本机记录与账号记录冲突，请先导出备份并核对。');
         map.set(item.id,copy(item));

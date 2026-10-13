@@ -17,6 +17,7 @@ const remote={read:async()=>({state:C.copy(server),versions:{...versions}}),appl
  a.save({...a.local,entries:[{id:'one',word:'one',due:'2026-10-13'}]}); fail=true;
  await a.sync(); assert.equal(a.status,'error'); assert.equal(a.local.entries.length,1); assert.equal(server.entries.length,0);
  const resumed=new Engine({userId:'A',storage,remote}); assert.equal(resumed.local.entries.length,1);
+ resumed.save({...resumed.local,entries:[{...resumed.local.entries[0],note:'offline after refresh'}]});assert.equal(resumed.local.entries[0].note,'offline after refresh');
  fail=false;await resumed.sync(); assert.equal(server.entries.length,1);
  const b=new Engine({userId:'B',storage,remote}); assert.equal(b.local.entries.length,0,'Account B never restores A cache');
  const quota=new Engine({userId:'quota',storage:{getItem:()=>null,setItem:()=>{throw new Error('quota');}},remote});
@@ -33,5 +34,10 @@ const remote={read:async()=>({state:C.copy(server),versions:{...versions}}),appl
  const conflictEngine=new Engine({userId:'conflict',storage,remote:{read:async()=>{throw Object.assign(new Error('SYNC_CONFLICT'),{code:'PT409'});}}});
  await conflictEngine.sync();assert.equal(conflictEngine.status,'conflict','HTTP 409 is an application conflict, not a retryable server failure');
  const stale=new Engine({userId:'A',storage,remote,onState:()=>{throw new Error('Disposed engine must not expose state');}});stale.dispose();await stale.sync();
+ const tabs=new Engine({userId:'tabs',storage,remote});tabs.ready=true;tabs.save({...C.empty(),entries:[{id:'local-tab',word:'one',due:'2026-10-13'}]});
+ tabs.receive({userId:'tabs',base:C.empty(),local:{...C.empty(),notebooks:[{id:'other-tab',title:'Other tab'}]},versions:{}});
+ assert.equal(tabs.local.entries.length,1);assert.equal(tabs.local.notebooks.length,1);assert.equal(tabs.status,'pending','Disjoint simultaneous tab edits merge instead of conflicting');
+ let writes=0;const viewTab=new Engine({userId:'view',storage:{getItem:()=>null,setItem:()=>writes++},remote});const readState={...C.empty(),articles:[{id:'article-a'},{id:'article-b'}]};viewTab.base=C.copy(readState);viewTab.local={...C.copy(readState),activeArticle:'article-a'};const shouldSync=viewTab.receive({userId:'view',base:readState,local:{...readState,activeArticle:'article-b'},versions:{}});assert.equal(writes,0,'Different tab reading positions must not cause a storage-event loop');assert.equal(shouldSync,false,'Cloud UI must not schedule another request for view-only storage events');assert.equal(viewTab.local.activeArticle,'article-a');
+ let raceServer=C.empty(),raceVersions={},attempt=0;const raced=new Engine({userId:'race',storage,remote:{read:async()=>({state:C.copy(raceServer),versions:raceVersions}),apply:async changes=>{attempt++;raceServer={...C.empty(),entries:[{id:'r',word:'race',due:'2026-10-13'}]};raceVersions={'entries:r':1};if(attempt===1)throw Object.assign(new Error('SYNC_CONFLICT'),{code:'PT409'});return {state:raceServer,versions:raceVersions};}}});raced.ready=true;raced.save({...C.empty(),entries:[{id:'r',word:'race',due:'2026-10-13'}]});await raced.sync();assert.equal(raced.status,'synced','Identical simultaneous writes converge after optimistic retry');
  console.log('PASS: queued writes, offline recovery, account cache isolation, in-flight edits, conflicts and disposal.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

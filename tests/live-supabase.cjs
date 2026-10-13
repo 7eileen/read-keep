@@ -7,10 +7,11 @@ for(const file of ['.env','.env.qa'])if(fs.existsSync(file))for(const line of fs
 }
 const url=process.env.SUPABASE_URL,key=process.env.SUPABASE_PUBLISHABLE_KEY;
 const make=()=>createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},global:{fetch:(url,opts)=>fetch(url,{...opts,signal:AbortSignal.any([...(opts?.signal?[opts.signal]:[]),AbortSignal.timeout(20000)])})}});
-const clients=[make(),make()],anon=make(),tables=['articles','entries','preferences'];
+const clients=[make(),make()],anon=make(),tables=['articles','entries','preferences','notebooks','vocabulary','review_events','study_sessions'];
 const ok=result=>{assert.ifError(result.error);return result.data;};
 const payloads={articles:{id:'qa-article',title:'QA article',created:'2026-10-12',kind:'粘贴文本',paragraphs:[{id:'p-1',text:'Cities adapt.'}]},entries:{id:'qa-entry',word:'adapt',meaning:'适应',source:'QA article',sentence:'Cities adapt.',created:'2026-10-12',due:'2026-10-13',reviews:0,star:false,note:'',level:'new'},preferences:{interval:3,batch:5,autoTranslate:false}};
 const id=t=>t==='preferences'?'settings':payloads[t].id;
+Object.assign(payloads,{notebooks:{id:'qa-book',title:'QA notebook',createdAt:'2026-10-13T00:00:00.000Z',kind:'词汇导入'},vocabulary:{id:'adapt',isUnknown:true},review_events:{id:'qa-review',wordId:'adapt',entryId:'qa-entry',at:'2026-10-13T00:00:00.000Z',grade:'remember',mode:'english'},study_sessions:{id:'active',sessionId:'qa-session',scope:'all',mode:'english',startedAt:'2026-10-13T00:00:00.000Z',items:[{wordId:'adapt',entryId:'qa-entry'}],index:0}});
 (async()=>{
  const users=[];
  for(let i=0;i<2;i++){
@@ -34,10 +35,14 @@ const id=t=>t==='preferences'?'settings':payloads[t].id;
    ok(await b.from(t).insert({id:id(t),payload:{...payloads[t],qa:'B'}}));
    assert.equal(ok(await b.from(t).select('*')).length,1);
  }
- console.log('PASS: authenticated CRUD and SELECT/INSERT/UPDATE/DELETE isolation on all three tables.');
+ console.log('PASS: authenticated CRUD and SELECT/INSERT/UPDATE/DELETE isolation on all seven tables.');
+ assert.ok((await a.from('notebooks').insert({id:'qa-duplicate-title',payload:{...payloads.notebooks,id:'qa-duplicate-title',title:'  QA   NOTEBOOK  '}})).error,'Concurrent duplicate normalized notebook titles are rejected');
  const aDevice2=make();ok(await aDevice2.auth.signInWithPassword({email:process.env.QA_A_EMAIL,password:process.env.QA_A_PASSWORD}));
  let snapshot=ok(await aDevice2.rpc('journal_load'));
  assert.equal(snapshot.entries[0].payload.qa,'updated');
+ assert.equal(snapshot.notebooks[0].payload.title,'QA notebook');assert.equal(snapshot.vocabulary[0].payload.isUnknown,true);assert.equal(snapshot.review_events[0].payload.grade,'remember');assert.equal(snapshot.study_sessions[0].payload.index,0);
+ const update=ok(await a.rpc('journal_apply',{changes:[{table:'notebooks',id:'qa-book',version:2,data:{...payloads.notebooks,title:'Renamed on device A'}},{table:'vocabulary',id:'adapt',version:2,data:{...payloads.vocabulary,isUnknown:false}},{table:'study_sessions',id:'active',version:2,data:{...payloads.study_sessions,index:1}}]}));
+ const read2=ok(await aDevice2.rpc('journal_load'));assert.equal(read2.notebooks[0].payload.title,'Renamed on device A');assert.equal(read2.vocabulary[0].payload.isUnknown,false);assert.equal(read2.study_sessions[0].payload.index,1);assert.equal(read2.review_events.length,1);
  assert.equal(ok(await b.rpc('journal_load')).entries[0].payload.qa,'B');
  assert.ok((await anon.rpc('journal_load')).error);
  snapshot=ok(await a.rpc('journal_apply',{changes:[{table:'entries',id:'qa-entry',version:2,data:{...payloads.entries,note:'synced'}}]}));
