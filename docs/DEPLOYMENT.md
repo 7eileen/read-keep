@@ -4,9 +4,19 @@
 
 现有 Netlify 项目 `enchanting-faun-41350f` 继续连接 GitHub `7eileen/read-keep` 的 `main` 分支；没有新建网站或更换域名。GitHub Netlify App 仍仅授权此仓库。
 
-## 自动发布
+## 发布流程（2026-10-14 更新）
 
-根目录 `netlify.toml` 指定 Node.js 22、命令 `npm test && npm run build`、发布目录 `dist`。依赖按 `pnpm-lock.yaml` 和固定 packageManager 安装。每次 main 更新先跑全部 `check-*.cjs` 测试，再打包 Supabase 官方 SDK 和公开配置，全部成功才更新网站。失败时旧版继续服务。
+固定流程：本地修改 → 测试与验收 → 提交并推送 GitHub（跳过部署）→ 等待用户明确确认发布 → 提醒额度消耗 → 集中发布一次。
+
+每次完成改动后均保存到 GitHub，提交信息必须带 `[skip netlify]`。批量推送时确保最新提交带标记；拉取请求标题也须带同一标记，以免触发预览部署。推送前检查标记，推送后核对远端提交与部署状态。具体执行规则见根目录 [AGENTS.md](../AGENTS.md)。
+
+Netlify 的 Git 自动部署连接仍保留，日常推送通过该标记跳过部署；这不等于已在后台关闭自动部署。用户明确确认发布后，再核对待发布版本、测试结果、额度和可回退版本，通过一次受控的正式部署上线。
+
+Netlify 官方说明：[跳过部署](https://docs.netlify.com/deploy/manage-deploys/manage-deploys-overview/#skip-a-deploy)。下一个不含跳过标记的提交会连同之前跳过的改动一起部署，因此不能在未确认发布时移除标记。
+
+## 上线前的自动测试与构建
+
+根目录 `netlify.toml` 指定 Node.js 22、命令 `npm test && npm run build`、发布目录 `dist`。依赖按 `pnpm-lock.yaml` 和固定 packageManager 安装。获准发布并触发构建后，先跑全部 `check-*.cjs` 测试，再打包 Supabase 官方 SDK 和公开配置，全部成功才更新网站。失败时旧版继续服务。带 `[skip netlify]` 的日常推送不运行这条云端流程，相关测试须在本地先完成。
 
 Netlify → Project configuration → Environment variables 已配置：
 
@@ -17,7 +27,7 @@ Netlify → Project configuration → Environment variables 已配置：
 
 当前 Free 账户只能使用 All scopes；两项变量已应用所有部署上下文。它们会写入公开的 `dist/config.js`，属于可公开客户端配置。这里不能填写数据库密码、secret key 或 service_role key。无需把 SMTP 密码配置到 Netlify。
 
-环境变量变化需要重新构建。正常更新用 Git 推送，不用绕过测试的手动目录上传。检查 [部署记录](https://app.netlify.com/projects/enchanting-faun-41350f/deploys) 中的提交号、测试结果、构建和 Published 状态。
+环境变量变化需要重新构建，也应在发布确认后执行。日常 Git 推送只保存代码；获准发布后通过保留测试步骤的流程上线，不用绕过测试的手动目录上传。检查 [部署记录](https://app.netlify.com/projects/enchanting-faun-41350f/deploys) 中的提交号、测试结果、构建和 Published 状态。
 
 ## 本地
 
